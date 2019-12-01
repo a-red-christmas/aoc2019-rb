@@ -12,13 +12,25 @@ module Day1
       @@modules << self
     end
 
-    # ⌊ mass ÷ 3 ⌋ - 2
     def fuel_required
-      return (@mass / 3).floor - 2
+      self.class.fuel_required @mass
+    end
+
+    # Also account for the fuel necessary for the fuel's mass.
+    def total_fuel_required
+      # A 2.7-ism. Requires bleeding-edge Ruby. Like from the HEAD.
+      Enumerator.produce(fuel_required) { |remaining|
+        self.class.fuel_required remaining
+      }.take_while { |f| f > 0 }.sum
     end
 
     def self.modules
       return @@modules
+    end
+
+    # ⌊ mass ÷ 3 ⌋ - 2
+    def self.fuel_required(mass)
+      return (mass / 3).floor - 2
     end
   end
 
@@ -33,7 +45,17 @@ module Day1
   def self.part1
     return RocketModule.modules.sum(&:fuel_required)
   end
+
+  # Now the Rocket Equation Double-Checker decided to speak up!
+  # Turns out the fuel being sent up is also mass that needs to be
+  # accounted for with fuel.
+  # Likewise, THAT fuel is also mass to be accounted for.
+  # Keep adding fuel for the fuel until we got enough.
+  def self.part2
+    return RocketModule.modules.sum(&:total_fuel_required)
+  end
 end
 
 puts "Day 1: The Tyranny of the Rocket Equation"
 puts "  Part 1: #{Day1.part1}"
+puts "  Part 2: #{Day1.part2}"
